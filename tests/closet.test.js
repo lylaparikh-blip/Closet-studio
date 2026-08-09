@@ -105,6 +105,7 @@ function loadApp(options = {}) {
 
   const storage = new Map(Object.entries(options.localStorageValues || {}));
   const fakeIndexedDB = createFakeIndexedDB(options.indexedDbRecords || []);
+  if (options.failIndexedDbWrite) fakeIndexedDB.setFailure(true);
   let storageFailure = false;
   const context = vm.createContext({
     console,
@@ -123,6 +124,7 @@ function loadApp(options = {}) {
     alert: (message) => alerts.push(message),
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
+      removeItem: (key) => storage.delete(key),
       setItem: (key, value) => {
         if (storageFailure) throw new Error('QuotaExceededError');
         storage.set(key, value);
@@ -180,8 +182,51 @@ test('IndexedDB storage reads, writes, and deletes complete item records', async
   assert.equal(app.indexedDbRecords.has(10), false);
 });
 
+test('legacy localStorage items migrate once and retain their photos', async () => {
+  const legacy = [{
+    id: 20,
+    name: 'Coat',
+    category: 'top',
+    image: 'data:image/jpeg;base64,YQ==',
+  }];
+  const app = loadApp({ localStorageValues: { closetItems: JSON.stringify(legacy) } });
+
+  await vm.runInContext('appReady', app.context);
+
+  const stored = app.indexedDbRecords.get(20);
+  assert.equal(stored.name, 'Coat');
+  assert.equal(stored.image, undefined);
+  assert.equal(stored.photo.type, 'image/jpeg');
+  assert.equal(app.storage.has('closetItems'), false);
+});
+
+test('failed legacy migration leaves the complete legacy closet untouched', async () => {
+  const serialized = JSON.stringify([{ id: 21, name: 'Dress', category: 'dress' }]);
+  const app = loadApp({
+    localStorageValues: { closetItems: serialized },
+    failIndexedDbWrite: true,
+  });
+
+  await assert.rejects(vm.runInContext('appReady', app.context));
+  assert.equal(app.storage.get('closetItems'), serialized);
+  assert.equal(app.indexedDbRecords.size, 0);
+});
+
+test('starter items seed only when IndexedDB and legacy storage are empty', async () => {
+  const empty = loadApp();
+  await vm.runInContext('appReady', empty.context);
+  assert.equal(empty.indexedDbRecords.size, 5);
+
+  const existing = loadApp({
+    indexedDbRecords: [{ id: 40, name: 'Existing', category: 'top' }],
+  });
+  await vm.runInContext('appReady', existing.context);
+  assert.deepEqual([...existing.indexedDbRecords.keys()], [40]);
+});
+
 test('a second Add click is ignored while an image is being prepared', async () => {
   const app = loadApp();
+  await vm.runInContext('appReady', app.context);
   app.element('itemName').value = 'Blue sweater';
   app.element('itemCategory').value = 'top';
   app.element('itemImage').files = [{ type: 'image/png' }];
@@ -198,6 +243,7 @@ test('a second Add click is ignored while an image is being prepared', async () 
 
 test('uploaded photos are resized before they are saved', async () => {
   const app = loadApp();
+  await vm.runInContext('appReady', app.context);
   app.element('itemName').value = 'Blue sweater';
   app.element('itemCategory').value = 'top';
   app.element('itemImage').files = [{ type: 'image/png' }];
@@ -215,8 +261,9 @@ test('uploaded photos are resized before they are saved', async () => {
   assert.deepEqual(app.encodingCalls[0], ['image/jpeg', 0.7]);
 });
 
-test('a storage failure does not leave a phantom item or lock the form', () => {
+test('a storage failure does not leave a phantom item or lock the form', async () => {
   const app = loadApp();
+  await vm.runInContext('appReady', app.context);
   app.element('itemName').value = 'Blue sweater';
   app.element('itemCategory').value = 'top';
   app.setStorageFailure(true);

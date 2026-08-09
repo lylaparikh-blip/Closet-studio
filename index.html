@@ -78,8 +78,12 @@ function requestResult(request){return new Promise((resolve,reject)=>{request.on
 function transactionDone(transaction){return new Promise((resolve,reject)=>{transaction.oncomplete=()=>resolve();transaction.onerror=()=>reject(transaction.error);transaction.onabort=()=>reject(transaction.error)})}
 async function getStoredItems(){let db=await openClosetDb(),transaction=db.transaction(ITEM_STORE,"readonly"),done=transactionDone(transaction),request=transaction.objectStore(ITEM_STORE).getAll(),result=await requestResult(request);await done;return result}
 async function putStoredItem(item){let db=await openClosetDb(),transaction=db.transaction(ITEM_STORE,"readwrite"),done=transactionDone(transaction);transaction.objectStore(ITEM_STORE).put(item);await done}
+async function putStoredItems(records){let db=await openClosetDb(),transaction=db.transaction(ITEM_STORE,"readwrite"),done=transactionDone(transaction),store=transaction.objectStore(ITEM_STORE);records.forEach(record=>store.put(record));await done}
 async function deleteStoredItem(id){let db=await openClosetDb(),transaction=db.transaction(ITEM_STORE,"readwrite"),done=transactionDone(transaction);transaction.objectStore(ITEM_STORE).delete(id);await done}
-let items=JSON.parse(localStorage.getItem("closetItems")||"null")||starterItems;
+function dataUrlToBlob(dataUrl){let [header,data]=dataUrl.split(","),type=(header.match(/^data:([^;]+)/)||[])[1]||"application/octet-stream",binary=atob(data),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type})}
+async function migrateLegacyItems(){let serialized=localStorage.getItem("closetItems");if(!serialized)return false;let existing=await getStoredItems();if(existing.length)return false;let legacy=JSON.parse(serialized),records=legacy.map(item=>{let {image,...record}=item;if(image)record.photo=dataUrlToBlob(image);return record});await putStoredItems(records);localStorage.removeItem("closetItems");return true}
+async function initializeCloset(){let stored=await getStoredItems();if(!stored.length){if(await migrateLegacyItems())stored=await getStoredItems();else{await putStoredItems(starterItems);stored=await getStoredItems()}}items=stored;renderCloset()}
+let items=[];
 let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),current={},trendData=[],isAddingItem=false;
 function persist(){try{localStorage.setItem("savedOutfits",JSON.stringify(saved));localStorage.setItem("closetItems",JSON.stringify(items));return true}catch(e){return false}}
 function showPage(page){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));if(page==="closet")renderCloset();if(page==="builder")renderPickers();if(page==="saved")renderSaved();window.scrollTo({top:0,behavior:"smooth"})}
@@ -102,7 +106,7 @@ async function loadTrends(){let status=document.getElementById("trendStatus"),li
 function saveOutfit(){let chosen=Object.values(current).filter(Boolean);if(chosen.length<2)return alert("Pick at least two pieces before saving!");saved.unshift({id:Date.now(),items:chosen});persist();alert("Outfit saved! 💗");showPage("saved")}
 function renderSaved(){let b=document.getElementById("savedList");if(!saved.length){b.innerHTML='<div class="empty">You haven’t saved any outfits yet. ✨</div>';return}b.innerHTML=saved.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>x.image?`<img src="${x.image}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><button onclick="deleteSaved(${o.id})">Delete</button></div>`}).join("")}
 function deleteSaved(id){saved=saved.filter(x=>x.id!==id);persist();renderSaved()}
-renderCloset();
+const appReady=initializeCloset().catch(error=>{alert("I couldn't open this closet's browser storage. Try reloading the page.");throw error});
 </script>
 </body>
 </html>
