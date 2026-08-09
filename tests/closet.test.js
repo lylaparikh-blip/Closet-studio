@@ -4,7 +4,66 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 
-function loadApp() {
+function createFakeIndexedDB(initialRecords = []) {
+  const records = new Map(initialRecords.map((record) => [record.id, record]));
+  let failWrites = false;
+
+  const makeRequest = (tx, operation) => {
+    const request = {};
+    tx.pending += 1;
+    queueMicrotask(() => {
+      if (failWrites && tx.mode === 'readwrite') {
+        request.error = new Error('IndexedDB write failed');
+        tx.error = request.error;
+        request.onerror?.();
+        tx.onerror?.();
+        return;
+      }
+      request.result = operation();
+      request.onsuccess?.();
+      tx.pending -= 1;
+      if (tx.pending === 0) queueMicrotask(() => tx.oncomplete?.());
+    });
+    return request;
+  };
+
+  const db = {
+    objectStoreNames: { contains: () => true },
+    createObjectStore() {},
+    transaction(_name, mode = 'readonly') {
+      const tx = {
+        mode,
+        pending: 0,
+        objectStore() {
+          return {
+            getAll: () => makeRequest(tx, () => [...records.values()]),
+            put: (record) => makeRequest(tx, () => records.set(record.id, record)),
+            delete: (id) => makeRequest(tx, () => records.delete(id)),
+          };
+        },
+      };
+      return tx;
+    },
+  };
+
+  return {
+    api: {
+      open() {
+        const request = {};
+        queueMicrotask(() => {
+          request.result = db;
+          request.onupgradeneeded?.();
+          request.onsuccess?.();
+        });
+        return request;
+      },
+    },
+    records,
+    setFailure(value) { failWrites = value; },
+  };
+}
+
+function loadApp(options = {}) {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   const readers = [];
@@ -44,7 +103,8 @@ function loadApp() {
     }
   }
 
-  const storage = new Map();
+  const storage = new Map(Object.entries(options.localStorageValues || {}));
+  const fakeIndexedDB = createFakeIndexedDB(options.indexedDbRecords || []);
   let storageFailure = false;
   const context = vm.createContext({
     console,
@@ -56,6 +116,10 @@ function loadApp() {
     Error,
     FileReader: FakeFileReader,
     Image: FakeImage,
+    Blob,
+    Uint8Array,
+    atob,
+    indexedDB: fakeIndexedDB.api,
     alert: (message) => alerts.push(message),
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
@@ -95,8 +159,26 @@ function loadApp() {
     encodingCalls,
     element,
     setStorageFailure: (value) => { storageFailure = value; },
+    storage,
+    indexedDbRecords: fakeIndexedDB.records,
+    setIndexedDbFailure: (value) => fakeIndexedDB.setFailure(value),
   };
 }
+
+test('IndexedDB storage reads, writes, and deletes complete item records', async () => {
+  const app = loadApp({
+    indexedDbRecords: [{ id: 9, name: 'Boots', category: 'shoes', photo: null }],
+  });
+
+  const stored = await vm.runInContext('getStoredItems()', app.context);
+  assert.equal(stored[0].name, 'Boots');
+
+  await vm.runInContext("putStoredItem({id:10,name:'Hat',category:'accessory',photo:null})", app.context);
+  assert.equal(app.indexedDbRecords.get(10).name, 'Hat');
+
+  await vm.runInContext('deleteStoredItem(10)', app.context);
+  assert.equal(app.indexedDbRecords.has(10), false);
+});
 
 test('a second Add click is ignored while an image is being prepared', async () => {
   const app = loadApp();
