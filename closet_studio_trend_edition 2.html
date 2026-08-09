@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Closet Studio — Trend Edition</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS",Arial,sans-serif;background:#fff7fb;color:#3d2940}
+header{background:#f7c9df;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #e9a9ca;position:sticky;top:0;z-index:5}
+.logo{font-size:27px;font-weight:800;letter-spacing:1px}nav button{border:0;background:#fff;color:#5b3854;padding:9px 12px;border-radius:18px;margin-left:5px;cursor:pointer;font-weight:700}nav button.active{background:#5b3854;color:#fff}
+main{max-width:1100px;margin:auto;padding:26px 20px 60px}.page{display:none}.page.active{display:block}
+.hero{background:linear-gradient(135deg,#ffe5f1,#fff);border:2px solid #f1bfd7;border-radius:25px;padding:30px;margin-bottom:22px}.hero h1{margin:0 0 8px;font-size:38px}.hero p{margin:0;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.card{background:#fff;border:2px solid #efd6e3;border-radius:22px;padding:20px;box-shadow:0 5px 16px #7d4d6815}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}input,select{border:2px solid #e8c5d9;border-radius:14px;padding:11px 13px;background:#fff;font-size:15px}.primary,.secondary{border:0;border-radius:16px;padding:12px 17px;cursor:pointer;font-weight:800;font-size:15px}.primary{background:#5b3854;color:#fff}.secondary{background:#f7c9df;color:#4b3045}
+.closet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}.item{background:#fff;border:2px solid #efd6e3;border-radius:20px;padding:12px}.photo{height:150px;border-radius:15px;background:#f8e7ef;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:50px}.photo img{width:100%;height:100%;object-fit:cover}.item h3{margin:10px 0 4px;font-size:17px}.item small{color:#8b6b80}.item button,.saved button{margin-top:9px;padding:7px 10px;border:0;border-radius:10px;cursor:pointer}
+.builder{display:grid;grid-template-columns:1fr 1fr;gap:20px}.outfit-card,.picker{background:#fff;border:2px solid #efd6e3;border-radius:22px;padding:20px}.look{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.slot{min-height:145px;border:2px dashed #e3bfd1;border-radius:16px;background:#fff8fc;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px}.slot img{max-width:100%;max-height:130px;border-radius:10px}.picker-row{margin-bottom:14px}.picker-row label{display:block;font-weight:800;margin-bottom:5px}.picker-row select{width:100%}
+.empty{text-align:center;padding:40px 20px;background:#fff;border-radius:22px;border:2px dashed #e5c4d5}.saved{background:#fff;border:2px solid #efd6e3;border-radius:20px;padding:18px;margin-bottom:15px}.saved-look{display:flex;gap:10px;flex-wrap:wrap}.saved-look img,.saved-look .emoji{width:90px;height:90px;object-fit:cover;border-radius:12px}.saved-look .emoji{background:#f8e7ef;display:flex;align-items:center;justify-content:center;font-size:38px}
+.trend{background:#fff;border:2px solid #efd6e3;border-radius:20px;padding:18px}.trend h3{margin:0 0 7px}.trend p{margin:5px 0;color:#6f596a}.source{font-size:12px;color:#9a7f92}.status{padding:10px 13px;border-radius:14px;background:#fff0f7;margin:12px 0}
+dialog{border:0;border-radius:24px;padding:0;width:min(500px,92vw);box-shadow:0 20px 70px #3d294055}dialog::backdrop{background:#3d294055}.modal{padding:25px}.modal h2{margin-top:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.hint{color:#7c6174;font-size:14px}
+@media(max-width:750px){.builder{grid-template-columns:1fr}header{flex-direction:column;gap:12px}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">🎀 Closet Studio</div>
+<nav>
+<button class="active" data-page="home">Home</button><button data-page="closet">My Closet</button><button data-page="builder">Outfit Builder</button><button data-page="trends">Trend Radar</button><button data-page="saved">Saved</button>
+</nav>
+</header>
+<main>
+<section id="home" class="page active">
+<div class="hero"><h1>Your closet, but smarter. ✨</h1><p>Build outfits from your own clothes and use online fashion trends for inspiration.</p></div>
+<div class="grid">
+<div class="card"><h2>👚 My Closet</h2><p>Add photos of your clothes and organize them.</p><button class="primary" onclick="showPage('closet')">Open Closet</button></div>
+<div class="card"><h2>✨ Trendy Randomizer</h2><p>Pull current fashion headlines online, then use the trends to guide your random outfit.</p><button class="secondary" onclick="trendOutfit()">Try It</button></div>
+<div class="card"><h2>📰 Trend Radar</h2><p>See the fashion stories the website is finding online right now.</p><button class="primary" onclick="showPage('trends');loadTrends()">See Trends</button></div>
+</div>
+</section>
+
+<section id="closet" class="page">
+<h1>👚 My Closet</h1><p class="hint">Photos are stored in this browser on your device.</p>
+<div class="toolbar"><input id="search" placeholder="Search your closet..." oninput="renderCloset()"><select id="filter" onchange="renderCloset()"><option value="all">All categories</option><option value="top">Tops</option><option value="bottom">Bottoms</option><option value="dress">Dresses</option><option value="shoes">Shoes</option><option value="accessory">Accessories</option></select><button class="primary" onclick="openModal()">＋ Add clothing</button></div>
+<div id="closetGrid" class="closet-grid"></div>
+</section>
+
+<section id="builder" class="page">
+<h1>✨ Outfit Builder</h1>
+<div class="builder"><div class="outfit-card"><h2>Your look</h2><div class="look">
+<div class="slot" id="slot-top">👚<br><b>Top</b></div><div class="slot" id="slot-bottom">👖<br><b>Bottom</b></div><div class="slot" id="slot-dress">👗<br><b>Dress</b></div><div class="slot" id="slot-shoes">👟<br><b>Shoes</b></div><div class="slot" id="slot-accessory">👜<br><b>Accessory</b></div>
+</div><div class="row"><button class="primary" onclick="saveOutfit()">♡ Save outfit</button><button class="secondary" onclick="randomOutfit()">🎲 Random</button><button class="secondary" onclick="trendOutfit()">🔥 Trendy</button></div></div><div class="picker"><h2>Pick your pieces</h2><div id="pickers"></div></div></div>
+</section>
+
+<section id="trends" class="page">
+<h1>🔥 Trend Radar</h1>
+<p>Closet Studio checks online fashion-news headlines. Headlines are inspiration, not rules.</p>
+<div class="status" id="trendStatus">Press “Refresh trends” to check online.</div>
+<button class="primary" onclick="loadTrends()">↻ Refresh trends</button>
+<div id="trendList" class="grid" style="margin-top:16px"></div>
+</section>
+
+<section id="saved" class="page"><h1>💗 Saved Outfits</h1><div id="savedList"></div></section>
+</main>
+
+<dialog id="addDialog"><div class="modal"><h2>Add something to your closet 👗</h2><input id="itemName" placeholder="Item name (e.g. Pink cardigan)" style="width:100%"><div class="row"><select id="itemCategory"><option value="top">Top</option><option value="bottom">Bottom</option><option value="dress">Dress</option><option value="shoes">Shoes</option><option value="accessory">Accessory</option></select><input id="itemImage" type="file" accept="image/*"></div><p class="hint">Upload a photo of your actual clothing item.</p><div class="row"><button class="primary" onclick="addItem()">Add to closet</button><button class="secondary" onclick="closeModal()">Cancel</button></div></div></dialog>
+
+<script>
+const starterItems=[
+{id:1,name:"Pink Cardigan",category:"top",emoji:"🩷",tags:["cardigan","pink","preppy","layering"]},
+{id:2,name:"White Tee",category:"top",emoji:"👚",tags:["white","tee","minimal","casual"]},
+{id:3,name:"Denim Skirt",category:"bottom",emoji:"👖",tags:["denim","skirt","preppy"]},
+{id:4,name:"Black Mary Janes",category:"shoes",emoji:"👞",tags:["black","mary jane","preppy"]},
+{id:5,name:"Pearl Necklace",category:"accessory",emoji:"📿",tags:["pearl","romantic","preppy"]}
+];
+let items=JSON.parse(localStorage.getItem("closetItems")||"null")||starterItems;
+let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),current={},trendData=[];
+function persist(){localStorage.setItem("closetItems",JSON.stringify(items));localStorage.setItem("savedOutfits",JSON.stringify(saved))}
+function showPage(page){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(page).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===page));if(page==="closet")renderCloset();if(page==="builder")renderPickers();if(page==="saved")renderSaved();window.scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function renderCloset(){let q=document.getElementById("search").value.toLowerCase(),f=document.getElementById("filter").value,list=items.filter(x=>(x.name+" "+(x.tags||[]).join(" ")).toLowerCase().includes(q)&&(f==="all"||x.category===f)),g=document.getElementById("closetGrid");g.innerHTML=list.length?list.map(x=>`<div class="item"><div class="photo">${x.image?`<img src="${x.image}">`:x.emoji||"👗"}</div><h3>${esc(x.name)}</h3><small>${x.category}${x.tags?.length?" · "+x.tags.join(", "):""}</small><br><button onclick="deleteItem(${x.id})">Remove</button></div>`).join(""):'<div class="empty">Nothing here yet. Add some clothes! 🎀</div>'}
+function deleteItem(id){items=items.filter(x=>x.id!==id);persist();renderCloset();renderPickers()}
+function openModal(){document.getElementById("addDialog").showModal()}function closeModal(){document.getElementById("addDialog").close()}
+function addItem(){let name=document.getElementById("itemName").value.trim(),cat=document.getElementById("itemCategory").value,file=document.getElementById("itemImage").files[0];if(!name)return alert("Give your clothing item a name first!");let item={id:Date.now(),name,category:cat,emoji:"👗",tags:name.toLowerCase().split(/\s+/)};if(file){let r=new FileReader();r.onload=()=>{item.image=r.result;finishAdd(item)};r.readAsDataURL(file)}else finishAdd(item)}
+function finishAdd(item){items.push(item);persist();document.getElementById("itemName").value="";document.getElementById("itemImage").value="";closeModal();renderCloset();renderPickers()}
+function renderPickers(){let cats=[["top","👚 Top"],["bottom","👖 Bottom"],["dress","👗 Dress"],["shoes","👟 Shoes"],["accessory","👜 Accessory"]];document.getElementById("pickers").innerHTML=cats.map(([c,l])=>{let a=items.filter(x=>x.category===c);return `<div class="picker-row"><label>${l}</label><select onchange="choose('${c}',this.value)"><option value="">None</option>${a.map(x=>`<option value="${x.id}" ${current[c]==x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`}).join("");cats.forEach(([c])=>updateSlot(c))}
+function choose(c,id){if(id)current[c]=Number(id);else delete current[c];updateSlot(c)}
+function updateSlot(c){let s=document.getElementById("slot-"+c),x=items.find(y=>y.id===current[c]);if(!x){s.innerHTML={top:"👚<br><b>Top</b>",bottom:"👖<br><b>Bottom</b>",dress:"👗<br><b>Dress</b>",shoes:"👟<br><b>Shoes</b>",accessory:"👜<br><b>Accessory</b>"}[c];return}s.innerHTML=x.image?`<img src="${x.image}">`:`<span style="font-size:55px">${x.emoji||"👗"}</span>`}
+function randomOutfit(preferredTags=[]){let cats=["top","bottom","dress","shoes","accessory"];current={};cats.forEach(c=>{let a=items.filter(x=>x.category===c);if(preferredTags.length){let tagged=a.filter(x=>(x.tags||[]).some(t=>preferredTags.includes(t)));if(tagged.length)a=tagged}if(a.length)current[c]=a[Math.floor(Math.random()*a.length)].id});showPage("builder");renderPickers()}
+function trendOutfit(){if(!trendData.length){loadTrends().then(()=>generateTrendLook());}else generateTrendLook()}
+function generateTrendLook(){let text=trendData.map(x=>x.title.toLowerCase()).join(" "),keys=[];const map={cardigan:["cardigan","layering","preppy"],denim:["denim","jeans","skirt"],ballet:["ballet","flats","shoes"],loafers:["loafers","preppy"],burgundy:["burgundy"],romantic:["romantic","floral"],minimal:["minimal","white","tailored"],"90s":["90s","minimal"],preppy:["preppy"],"button-down":["button-down","layering"],slip:["slip","skirt"]};Object.keys(map).forEach(k=>{if(text.includes(k))keys.push(...map[k])});keys=[...new Set(keys)];randomOutfit(keys)}
+async function loadTrends(){let status=document.getElementById("trendStatus"),list=document.getElementById("trendList");status.textContent="Checking online fashion headlines…";list.innerHTML="";try{let q=encodeURIComponent("fashion trends 2026");let url="https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent("https://news.google.com/rss/search?q="+q+"&hl=en-US&gl=US&ceid=US:en");let r=await fetch(url);let d=await r.json();trendData=(d.items||[]).slice(0,12);if(!trendData.length)throw Error();status.textContent="Updated from online fashion-news headlines. ✨";list.innerHTML=trendData.map(x=>`<div class="trend"><h3>${esc(x.title)}</h3><p>${esc((x.description||"").replace(/<[^>]*>/g,"").slice(0,180))}</p><div class="source">${esc(x.author||"Online fashion news")} · ${x.pubDate?new Date(x.pubDate).toLocaleDateString():""}</div></div>`).join("")}catch(e){status.textContent="I couldn't reach the online trend feed right now. Your closet still works offline.";list.innerHTML='<div class="empty">Trend Radar is temporarily offline. Try again later. 💕</div>';return[]}}
+function saveOutfit(){let chosen=Object.values(current).filter(Boolean);if(chosen.length<2)return alert("Pick at least two pieces before saving!");saved.unshift({id:Date.now(),items:chosen});persist();alert("Outfit saved! 💗");showPage("saved")}
+function renderSaved(){let b=document.getElementById("savedList");if(!saved.length){b.innerHTML='<div class="empty">You haven’t saved any outfits yet. ✨</div>';return}b.innerHTML=saved.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>x.image?`<img src="${x.image}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><button onclick="deleteSaved(${o.id})">Delete</button></div>`}).join("")}
+function deleteSaved(id){saved=saved.filter(x=>x.id!==id);persist();renderSaved()}
+renderCloset();
+</script>
+</body>
+</html>
