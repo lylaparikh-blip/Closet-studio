@@ -70,6 +70,8 @@ function loadApp(options = {}) {
   const alerts = [];
   const canvases = [];
   const encodingCalls = [];
+  const createdUrls = [];
+  const revokedUrls = [];
   const elements = new Map();
 
   const element = (id) => {
@@ -143,12 +145,24 @@ function loadApp(options = {}) {
             encodingCalls.push(args);
             return 'data:image/jpeg;base64,small';
           },
+          toBlob: (callback, ...args) => {
+            encodingCalls.push(args);
+            callback(new Blob(['compressed-photo'], { type: 'image/jpeg' }));
+          },
         };
         canvases.push(canvas);
         return canvas;
       },
     },
     window: { scrollTo() {} },
+    URL: {
+      createObjectURL: () => {
+        const value = `blob:test-${createdUrls.length + 1}`;
+        createdUrls.push(value);
+        return value;
+      },
+      revokeObjectURL: (value) => revokedUrls.push(value),
+    },
     fetch: async () => ({ json: async () => ({ items: [] }) }),
   });
 
@@ -159,6 +173,8 @@ function loadApp(options = {}) {
     alerts,
     canvases,
     encodingCalls,
+    createdUrls,
+    revokedUrls,
     element,
     setStorageFailure: (value) => { storageFailure = value; },
     storage,
@@ -231,29 +247,34 @@ test('a second Add click is ignored while an image is being prepared', async () 
   app.element('itemCategory').value = 'top';
   app.element('itemImage').files = [{ type: 'image/png' }];
 
-  vm.runInContext('addItem(); addItem();', app.context);
+  const firstAdd = vm.runInContext('addItem()', app.context);
+  vm.runInContext('addItem()', app.context);
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(app.readers.length, 1);
 
   app.readers[0].result = 'data:image/png;base64,very-large-original';
   app.readers[0].onload();
-  await new Promise((resolve) => setImmediate(resolve));
+  await firstAdd;
 
   assert.equal(vm.runInContext('items.length', app.context), 6);
 });
 
-test('uploaded photos are resized before they are saved', async () => {
+test('uploaded photos are resized into blobs before they are saved', async () => {
   const app = loadApp();
   await vm.runInContext('appReady', app.context);
   app.element('itemName').value = 'Blue sweater';
   app.element('itemCategory').value = 'top';
   app.element('itemImage').files = [{ type: 'image/png' }];
 
-  vm.runInContext('addItem()', app.context);
+  const pendingAdd = vm.runInContext('addItem()', app.context);
+  await new Promise((resolve) => setImmediate(resolve));
   app.readers[0].result = 'data:image/png;base64,very-large-original';
   app.readers[0].onload();
-  await new Promise((resolve) => setImmediate(resolve));
+  await pendingAdd;
 
-  assert.equal(vm.runInContext('items.at(-1).image', app.context), 'data:image/jpeg;base64,small');
+  const stored = app.indexedDbRecords.get(vm.runInContext('items.at(-1).id', app.context));
+  assert.equal(stored.photo.type, 'image/jpeg');
+  assert.equal(stored.image, undefined);
   assert.deepEqual(
     { width: app.canvases[0].width, height: app.canvases[0].height },
     { width: 800, height: 533 },
@@ -266,13 +287,70 @@ test('a storage failure does not leave a phantom item or lock the form', async (
   await vm.runInContext('appReady', app.context);
   app.element('itemName').value = 'Blue sweater';
   app.element('itemCategory').value = 'top';
-  app.setStorageFailure(true);
+  app.setIndexedDbFailure(true);
 
-  assert.doesNotThrow(() => vm.runInContext('addItem()', app.context));
+  await vm.runInContext('addItem()', app.context);
   assert.equal(vm.runInContext('items.length', app.context), 5);
   assert.match(app.alerts.at(-1), /couldn't save/i);
 
-  app.setStorageFailure(false);
-  assert.doesNotThrow(() => vm.runInContext('addItem()', app.context));
+  app.setIndexedDbFailure(false);
+  await vm.runInContext('addItem()', app.context);
   assert.equal(vm.runInContext('items.length', app.context), 6);
+});
+
+test('removing an item deletes its IndexedDB record before hiding it', async () => {
+  const app = loadApp({
+    indexedDbRecords: [{ id: 50, name: 'Jacket', category: 'top' }],
+  });
+  await vm.runInContext('appReady', app.context);
+
+  await vm.runInContext('deleteItem(50)', app.context);
+
+  assert.equal(app.indexedDbRecords.has(50), false);
+  assert.equal(vm.runInContext('items.length', app.context), 0);
+});
+
+test('failed IndexedDB deletion preserves the visible item', async () => {
+  const app = loadApp({
+    indexedDbRecords: [{ id: 51, name: 'Skirt', category: 'bottom' }],
+  });
+  await vm.runInContext('appReady', app.context);
+  app.setIndexedDbFailure(true);
+
+  await vm.runInContext('deleteItem(51)', app.context);
+
+  assert.equal(app.indexedDbRecords.has(51), true);
+  assert.equal(vm.runInContext('items[0].name', app.context), 'Skirt');
+  assert.match(app.alerts.at(-1), /couldn't remove/i);
+});
+
+test('rerendering revokes photo object URLs that are no longer displayed', async () => {
+  const photo = new Blob(['photo'], { type: 'image/jpeg' });
+  const app = loadApp({
+    indexedDbRecords: [{ id: 52, name: 'Top', category: 'top', photo }],
+  });
+  await vm.runInContext('appReady', app.context);
+
+  vm.runInContext('renderCloset()', app.context);
+
+  assert.deepEqual(app.revokedUrls, ['blob:test-1']);
+  assert.deepEqual(app.createdUrls, ['blob:test-1', 'blob:test-2']);
+});
+
+test('adding a photo leaves the rendered closet image URL active', async () => {
+  const app = loadApp();
+  await vm.runInContext('appReady', app.context);
+  app.element('itemName').value = 'Sweater';
+  app.element('itemCategory').value = 'top';
+  app.element('itemImage').files = [{ type: 'image/png' }];
+
+  const pendingAdd = vm.runInContext('addItem()', app.context);
+  await new Promise((resolve) => setImmediate(resolve));
+  app.readers[0].result = 'data:image/png;base64,YQ==';
+  app.readers[0].onload();
+  await pendingAdd;
+
+  const renderedUrl = app.createdUrls.at(-1);
+  assert.match(app.element('closetGrid').innerHTML, new RegExp(renderedUrl));
+  assert.equal(app.revokedUrls.includes(renderedUrl), false);
 });
