@@ -9,6 +9,8 @@ function loadApp() {
   const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   const readers = [];
   const alerts = [];
+  const canvases = [];
+  const encodingCalls = [];
   const elements = new Map();
 
   const element = (id) => {
@@ -67,12 +69,17 @@ function loadApp() {
       querySelectorAll: () => [],
       createElement: (tag) => {
         assert.equal(tag, 'canvas');
-        return {
+        const canvas = {
           width: 0,
           height: 0,
           getContext: () => ({ drawImage() {} }),
-          toDataURL: () => 'data:image/jpeg;base64,small',
+          toDataURL: (...args) => {
+            encodingCalls.push(args);
+            return 'data:image/jpeg;base64,small';
+          },
         };
+        canvases.push(canvas);
+        return canvas;
       },
     },
     window: { scrollTo() {} },
@@ -84,6 +91,8 @@ function loadApp() {
     context,
     readers,
     alerts,
+    canvases,
+    encodingCalls,
     element,
     setStorageFailure: (value) => { storageFailure = value; },
   };
@@ -117,6 +126,11 @@ test('uploaded photos are resized before they are saved', async () => {
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(vm.runInContext('items.at(-1).image', app.context), 'data:image/jpeg;base64,small');
+  assert.deepEqual(
+    { width: app.canvases[0].width, height: app.canvases[0].height },
+    { width: 800, height: 533 },
+  );
+  assert.deepEqual(app.encodingCalls[0], ['image/jpeg', 0.7]);
 });
 
 test('a storage failure does not leave a phantom item or lock the form', () => {
