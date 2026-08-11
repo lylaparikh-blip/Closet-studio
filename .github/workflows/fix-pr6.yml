@@ -1,0 +1,34 @@
+name: Fix PR 6 syntax
+
+on:
+  push:
+    branches:
+      - feature/outfit-collections
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix the accessory markup
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = '`${photo?`<img src="${photo}">`:`<span style="font-size:55px">${x.emoji||"👜"}</span>`});look.innerHTML=html||'
+          new = '`${photo?`<img src="${photo}">`:`<span style="font-size:55px">${x.emoji||"👜"}</span>`}</div>`);look.innerHTML=html||'
+          if old not in s:
+              raise SystemExit('Expected broken renderLook markup was not found; no changes made.')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Fix outfit collection PR markup'
+          git push
