@@ -21,58 +21,18 @@ dialog{border:0;border-radius:24px;padding:0;width:min(500px,92vw);box-shadow:0 
 </style>
 </head>
 <body>
-<header>
-<div class="logo">🎀 Closet Studio</div>
-<nav>
-<button class="active" data-page="home">Home</button><button data-page="closet">My Closet</button><button data-page="builder">Outfit Builder</button><button data-page="trends">Trend Radar</button><button data-page="saved">Saved</button>
-</nav>
-</header>
+<header><div class="logo">🎀 Closet Studio</div><nav><button class="active" data-page="home">Home</button><button data-page="closet">My Closet</button><button data-page="builder">Outfit Builder</button><button data-page="trends">Trend Radar</button><button data-page="saved">Saved</button></nav></header>
 <main>
-<section id="home" class="page active">
-<div class="hero"><h1>Your closet, but smarter. ✨</h1><p>Build outfits from your own clothes and use online fashion trends for inspiration.</p></div>
-<div class="grid">
-<div class="card"><h2>👚 My Closet</h2><p>Add photos of your clothes and organize them.</p><button class="primary" onclick="showPage('closet')">Open Closet</button></div>
-<div class="card"><h2>✨ Trendy Randomizer</h2><p>Pull current fashion headlines online, then use the trends to guide your random outfit.</p><button class="secondary" onclick="trendOutfit()">Try It</button></div>
-<div class="card"><h2>📰 Trend Radar</h2><p>See the fashion stories the website is finding online right now.</p><button class="primary" onclick="showPage('trends');loadTrends()">See Trends</button></div>
-</div>
-</section>
-
-<section id="closet" class="page">
-<h1>👚 My Closet</h1><p class="hint">Photos are stored in this browser on your device.</p>
-<div class="toolbar"><input id="search" placeholder="Search your closet..." oninput="renderCloset()"><select id="filter" onchange="renderCloset()"><option value="all">All categories</option><option value="top">Tops</option><option value="bottom">Bottoms</option><option value="dress">Dresses</option><option value="shoes">Shoes</option><option value="accessory">Accessories</option></select><button class="primary" onclick="openModal()">＋ Add clothing</button></div>
-<div id="closetGrid" class="closet-grid"></div>
-</section>
-
-<section id="builder" class="page">
-<h1>✨ Outfit Builder</h1>
-<div class="builder"><div class="outfit-card"><h2>Your look</h2><div class="look">
-<div class="slot" id="slot-top">👚<br><b>Top</b></div><div class="slot" id="slot-bottom">👖<br><b>Bottom</b></div><div class="slot" id="slot-dress">👗<br><b>Dress</b></div><div class="slot" id="slot-shoes">👟<br><b>Shoes</b></div><div class="slot" id="slot-accessory">👜<br><b>Accessory</b></div>
-</div><div class="row"><button class="primary" onclick="saveOutfit()">♡ Save outfit</button><button class="secondary" onclick="randomOutfit()">🎲 Random</button><button class="secondary" onclick="trendOutfit()">🔥 Trendy</button></div></div><div class="picker"><h2>Pick your pieces</h2><div id="pickers"></div></div></div>
-</section>
-
-<section id="trends" class="page">
-<h1>🔥 Trend Radar</h1>
-<p>Closet Studio checks online fashion-news headlines. Headlines are inspiration, not rules.</p>
-<div class="status" id="trendStatus">Press “Refresh trends” to check online.</div>
-<button class="primary" onclick="loadTrends()">↻ Refresh trends</button>
-<div id="trendList" class="grid" style="margin-top:16px"></div>
-</section>
-
+<section id="home" class="page active"><div class="hero"><h1>Your closet, but smarter. ✨</h1><p>Build outfits from your own clothes and use online fashion trends for inspiration.</p></div><div class="grid"><div class="card"><h2>👚 My Closet</h2><p>Add photos of your clothes and organize them.</p><button class="primary" onclick="showPage('closet')">Open Closet</button></div><div class="card"><h2>✨ Trendy Randomizer</h2><p>Pull current fashion headlines online, then use the trends to guide your random outfit.</p><button class="secondary" onclick="trendOutfit()">Try It</button></div><div class="card"><h2>📰 Trend Radar</h2><p>See the fashion stories the website is finding online right now.</p><button class="primary" onclick="showPage('trends');loadTrends()">See Trends</button></div></div></section>
+<section id="closet" class="page"><h1>👚 My Closet</h1><p class="hint">Photos are stored in this browser on your device.</p><div class="toolbar"><input id="search" placeholder="Search your closet..." oninput="renderCloset()"><select id="filter" onchange="renderCloset()"><option value="all">All categories</option><option value="top">Tops</option><option value="bottom">Bottoms</option><option value="dress">Dresses</option><option value="jacket">Jackets & Sweaters</option><option value="shoes">Shoes</option><option value="accessory">Accessories</option></select><button class="primary" onclick="openModal()">＋ Add clothing</button></div><div id="closetGrid" class="closet-grid"></div></section>
+<section id="builder" class="page"><h1>✨ Outfit Builder</h1><div class="builder"><div class="outfit-card"><h2>Your look</h2><div class="look"><div class="slot" id="slot-top">👚<br><b>Top</b></div><div class="slot" id="slot-bottom">👖<br><b>Bottom</b></div><div class="slot" id="slot-dress">👗<br><b>Dress</b></div><div class="slot" id="slot-jacket">🧥<br><b>Jacket & Sweater</b></div><div class="slot" id="slot-shoes">👟<br><b>Shoes</b></div><div class="slot" id="slot-accessory">👜<br><b>Accessory</b></div></div><div class="row"><button class="primary" onclick="saveOutfit()">♡ Save outfit</button><button class="secondary" onclick="randomOutfit()">🎲 Random</button><button class="secondary" onclick="trendOutfit()">🔥 Trendy</button></div></div><div class="picker"><h2>Pick your pieces</h2><div id="pickers"></div></div></div></section>
+<section id="trends" class="page"><h1>🔥 Trend Radar</h1><p>Closet Studio checks online fashion-news headlines. Headlines are inspiration, not rules.</p><div class="status" id="trendStatus">Press “Refresh trends” to check online.</div><button class="primary" onclick="loadTrends()">↻ Refresh trends</button><div id="trendList" class="grid" style="margin-top:16px"></div></section>
 <section id="saved" class="page"><h1>💗 Saved Outfits</h1><div id="savedList"></div></section>
 </main>
-
-<dialog id="addDialog"><div class="modal"><h2>Add something to your closet 👗</h2><input id="itemName" placeholder="Item name (e.g. Pink cardigan)" style="width:100%"><div class="row"><select id="itemCategory"><option value="top">Top</option><option value="bottom">Bottom</option><option value="dress">Dress</option><option value="shoes">Shoes</option><option value="accessory">Accessory</option></select><input id="itemImage" type="file" accept="image/*"></div><p class="hint">Upload a photo of your actual clothing item.</p><div class="row"><button id="addItemButton" class="primary" onclick="addItem()">Add to closet</button><button class="secondary" onclick="closeModal()">Cancel</button></div></div></dialog>
-
+<dialog id="addDialog"><div class="modal"><h2>Add something to your closet 👗</h2><input id="itemName" placeholder="Item name (e.g. Pink cardigan)" style="width:100%"><div class="row"><select id="itemCategory"><option value="top">Top</option><option value="bottom">Bottom</option><option value="dress">Dress</option><option value="jacket">Jacket & Sweater</option><option value="shoes">Shoes</option><option value="accessory">Accessory</option></select><input id="itemImage" type="file" accept="image/*"></div><p class="hint">Upload a photo of your actual clothing item.</p><div class="row"><button id="addItemButton" class="primary" onclick="addItem()">Add to closet</button><button class="secondary" onclick="closeModal()">Cancel</button></div></div></dialog>
 <script>
-const starterItems=[
-{id:1,name:"Pink Cardigan",category:"top",emoji:"🩷",tags:["cardigan","pink","preppy","layering"]},
-{id:2,name:"White Tee",category:"top",emoji:"👚",tags:["white","tee","minimal","casual"]},
-{id:3,name:"Denim Skirt",category:"bottom",emoji:"👖",tags:["denim","skirt","preppy"]},
-{id:4,name:"Black Mary Janes",category:"shoes",emoji:"👞",tags:["black","mary jane","preppy"]},
-{id:5,name:"Pearl Necklace",category:"accessory",emoji:"📿",tags:["pearl","romantic","preppy"]}
-];
-const DB_NAME="closetStudio",DB_VERSION=1,ITEM_STORE="items";
-let dbPromise;
+const starterItems=[{id:1,name:"Pink Cardigan",category:"top",emoji:"🩷",tags:["cardigan","pink","preppy","layering"]},{id:2,name:"White Tee",category:"top",emoji:"👚",tags:["white","tee","minimal","casual"]},{id:3,name:"Denim Skirt",category:"bottom",emoji:"👖",tags:["denim","skirt","preppy"]},{id:4,name:"Black Mary Janes",category:"shoes",emoji:"👞",tags:["black","mary jane","preppy"]},{id:5,name:"Pearl Necklace",category:"accessory",emoji:"📿",tags:["pearl","romantic","preppy"]}];
+const DB_NAME="closetStudio",DB_VERSION=1,ITEM_STORE="items";let dbPromise;
 function openClosetDb(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{let request=indexedDB.open(DB_NAME,DB_VERSION);request.onupgradeneeded=()=>{let db=request.result;if(!db.objectStoreNames.contains(ITEM_STORE))db.createObjectStore(ITEM_STORE,{keyPath:"id"})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});return dbPromise}
 function requestResult(request){return new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
 function transactionDone(transaction){return new Promise((resolve,reject)=>{transaction.oncomplete=()=>resolve();transaction.onerror=()=>reject(transaction.error);transaction.onabort=()=>reject(transaction.error)})}
@@ -83,9 +43,7 @@ async function deleteStoredItem(id){let db=await openClosetDb(),transaction=db.t
 function dataUrlToBlob(dataUrl){let [header,data]=dataUrl.split(","),type=(header.match(/^data:([^;]+)/)||[])[1]||"application/octet-stream",binary=atob(data),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type})}
 async function migrateLegacyItems(){let serialized=localStorage.getItem("closetItems");if(!serialized)return false;let existing=await getStoredItems();if(existing.length)return false;let legacy=JSON.parse(serialized),records=legacy.map(item=>{let {image,...record}=item;if(image)record.photo=dataUrlToBlob(image);return record});await putStoredItems(records);localStorage.removeItem("closetItems");return true}
 async function initializeCloset(){let stored=await getStoredItems();if(!stored.length){if(await migrateLegacyItems())stored=await getStoredItems();else{await putStoredItems(starterItems);stored=await getStoredItems()}}items=stored;renderCloset()}
-let items=[];
-let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),current={},trendData=[],isAddingItem=false;
-const photoUrls=new Map();
+let items=[];let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),current={},trendData=[],isAddingItem=false;const photoUrls=new Map();
 function persist(){try{localStorage.setItem("savedOutfits",JSON.stringify(saved));return true}catch(e){return false}}
 function releasePhotoUrls(){photoUrls.forEach(url=>URL.revokeObjectURL(url));photoUrls.clear()}
 function photoUrl(item){if(item.image)return item.image;if(!item.photo)return "";if(!photoUrls.has(item.id))photoUrls.set(item.id,URL.createObjectURL(item.photo));return photoUrls.get(item.id)}
@@ -93,23 +51,20 @@ function showPage(page){document.querySelectorAll(".page").forEach(x=>x.classLis
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function renderCloset(){releasePhotoUrls();let q=document.getElementById("search").value.toLowerCase(),f=document.getElementById("filter").value,list=items.filter(x=>(x.name+" "+(x.tags||[]).join(" ")).toLowerCase().includes(q)&&(f==="all"||x.category===f)),g=document.getElementById("closetGrid");g.innerHTML=list.length?list.map(x=>{let photo=photoUrl(x);return `<div class="item"><div class="photo">${photo?`<img src="${photo}">`:x.emoji||"👗"}</div><h3>${esc(x.name)}</h3><small>${x.category}${x.tags?.length?" · "+x.tags.join(", "):""}</small><br><button onclick="deleteItem(${x.id})">Remove</button></div>`}).join(""):'<div class="empty">Nothing here yet. Add some clothes! 🎀</div>'}
-async function deleteItem(id){try{await appReady;await deleteStoredItem(id);items=items.filter(x=>x.id!==id);renderCloset()}catch(e){alert("I couldn't remove that item from this browser. Try refreshing the page and removing it again.")}}
+async function deleteItem(id){try{await appReady;await deleteStoredItem(id);items=items.filter(x=>x.id!==id);renderCloset();renderPickers()}catch(e){alert("I couldn't remove that item from this browser. Try refreshing the page and removing it again.")}}
 function openModal(){document.getElementById("addDialog").showModal()}function closeModal(){document.getElementById("addDialog").close()}
 function setAddingState(active){isAddingItem=active;let button=document.getElementById("addItemButton");button.disabled=active;button.textContent=active?"Adding…":"Add to closet"}
 function resizeImage(file){return new Promise((resolve,reject)=>{let reader=new FileReader();reader.onerror=()=>reject(Error("image"));reader.onload=()=>{let image=new Image();image.onerror=()=>reject(Error("image"));image.onload=()=>{let max=800,width=image.naturalWidth||image.width,height=image.naturalHeight||image.height,scale=Math.min(1,max/Math.max(width,height)),canvas=document.createElement("canvas");canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);canvas.toBlob(blob=>blob?resolve(blob):reject(Error("image")),"image/jpeg",.7)};image.src=reader.result};reader.readAsDataURL(file)})}
-async function addItem(){if(isAddingItem)return;let name=document.getElementById("itemName").value.trim(),cat=document.getElementById("itemCategory").value,file=document.getElementById("itemImage").files[0];if(!name)return alert("Give your clothing item a name first!");let item={id:Date.now(),name,category:cat,emoji:"👗",tags:name.toLowerCase().split(/\s+/)};setAddingState(true);try{await appReady;if(file)item.photo=await resizeImage(file);await putStoredItem(item);items.push(item);document.getElementById("itemName").value="";document.getElementById("itemImage").value="";closeModal();renderCloset()}catch(e){alert(e.message==="image"?"I couldn't read that photo. Try a different image.":"I couldn't save that item. The browser may be out of storage; try a smaller photo or remove an older item.")}finally{setAddingState(false)}}
-function renderPickers(){releasePhotoUrls();let cats=[["top","👚 Top"],["bottom","👖 Bottom"],["dress","👗 Dress"],["shoes","👟 Shoes"],["accessory","👜 Accessory"]];document.getElementById("pickers").innerHTML=cats.map(([c,l])=>{let a=items.filter(x=>x.category===c);return `<div class="picker-row"><label>${l}</label><select onchange="choose('${c}',this.value)"><option value="">None</option>${a.map(x=>`<option value="${x.id}" ${current[c]==x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`}).join("");cats.forEach(([c])=>updateSlot(c))}
+async function addItem(){if(isAddingItem)return;let name=document.getElementById("itemName").value.trim(),cat=document.getElementById("itemCategory").value,file=document.getElementById("itemImage").files[0];if(!name)return alert("Give your clothing item a name first!");let item={id:Date.now(),name,category:cat,emoji:cat==="jacket"?"🧥":"👗",tags:name.toLowerCase().split(/\s+/)};setAddingState(true);try{await appReady;if(file)item.photo=await resizeImage(file);await putStoredItem(item);items.push(item);document.getElementById("itemName").value="";document.getElementById("itemImage").value="";closeModal();renderCloset();renderPickers()}catch(e){alert(e.message==="image"?"I couldn't read that photo. Try a different image.":"I couldn't save that item. The browser may be out of storage; try a smaller photo or remove an older item.")}finally{setAddingState(false)}}
+function renderPickers(){releasePhotoUrls();let cats=[["top","👚 Top"],["bottom","👖 Bottom"],["dress","👗 Dress"],["jacket","🧥 Jacket & Sweater"],["shoes","👟 Shoes"],["accessory","👜 Accessory"]];document.getElementById("pickers").innerHTML=cats.map(([c,l])=>{let a=items.filter(x=>x.category===c);return `<div class="picker-row"><label>${l}</label><select onchange="choose('${c}',this.value)"><option value="">None</option>${a.map(x=>`<option value="${x.id}" ${current[c]==x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`}).join("");cats.forEach(([c])=>updateSlot(c))}
 function choose(c,id){if(id)current[c]=Number(id);else delete current[c];updateSlot(c)}
-function updateSlot(c){let s=document.getElementById("slot-"+c),x=items.find(y=>y.id===current[c]);if(!x){s.innerHTML={top:"👚<br><b>Top</b>",bottom:"👖<br><b>Bottom</b>",dress:"👗<br><b>Dress</b>",shoes:"👟<br><b>Shoes</b>",accessory:"👜<br><b>Accessory</b>"}[c];return}let photo=photoUrl(x);s.innerHTML=photo?`<img src="${photo}">`:`<span style="font-size:55px">${x.emoji||"👗"}</span>`}
-function randomOutfit(preferredTags=[]){let cats=["top","bottom","dress","shoes","accessory"];current={};cats.forEach(c=>{let a=items.filter(x=>x.category===c);if(preferredTags.length){let tagged=a.filter(x=>(x.tags||[]).some(t=>preferredTags.includes(t)));if(tagged.length)a=tagged}if(a.length)current[c]=a[Math.floor(Math.random()*a.length)].id});showPage("builder");renderPickers()}
+function updateSlot(c){let s=document.getElementById("slot-"+c),x=items.find(y=>y.id===current[c]);if(!x){s.innerHTML={top:"👚<br><b>Top</b>",bottom:"👖<br><b>Bottom</b>",dress:"👗<br><b>Dress</b>",jacket:"🧥<br><b>Jacket & Sweater</b>",shoes:"👟<br><b>Shoes</b>",accessory:"👜<br><b>Accessory</b>"}[c];return}let photo=photoUrl(x);s.innerHTML=photo?`<img src="${photo}">`:`<span style="font-size:55px">${x.emoji||"👗"}</span>`}
+function randomOutfit(preferredTags=[]){let cats=["top","bottom","dress","jacket","shoes","accessory"];current={};cats.forEach(c=>{let a=items.filter(x=>x.category===c);if(preferredTags.length){let tagged=a.filter(x=>(x.tags||[]).some(t=>preferredTags.includes(t)));if(tagged.length)a=tagged}if(a.length)current[c]=a[Math.floor(Math.random()*a.length)].id});showPage("builder");renderPickers()}
 function trendOutfit(){if(!trendData.length){loadTrends().then(()=>generateTrendLook());}else generateTrendLook()}
 function generateTrendLook(){let text=trendData.map(x=>x.title.toLowerCase()).join(" "),keys=[];const map={cardigan:["cardigan","layering","preppy"],denim:["denim","jeans","skirt"],ballet:["ballet","flats","shoes"],loafers:["loafers","preppy"],burgundy:["burgundy"],romantic:["romantic","floral"],minimal:["minimal","white","tailored"],"90s":["90s","minimal"],preppy:["preppy"],"button-down":["button-down","layering"],slip:["slip","skirt"]};Object.keys(map).forEach(k=>{if(text.includes(k))keys.push(...map[k])});keys=[...new Set(keys)];randomOutfit(keys)}
 async function loadTrends(){let status=document.getElementById("trendStatus"),list=document.getElementById("trendList");status.textContent="Checking online fashion headlines…";list.innerHTML="";try{let q=encodeURIComponent("fashion trends 2026");let url="https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent("https://news.google.com/rss/search?q="+q+"&hl=en-US&gl=US&ceid=US:en");let r=await fetch(url);let d=await r.json();trendData=(d.items||[]).slice(0,12);if(!trendData.length)throw Error();status.textContent="Updated from online fashion-news headlines. ✨";list.innerHTML=trendData.map(x=>`<div class="trend"><h3>${esc(x.title)}</h3><p>${esc((x.description||"").replace(/<[^>]*>/g,"").slice(0,180))}</p><div class="source">${esc(x.author||"Online fashion news")} · ${x.pubDate?new Date(x.pubDate).toLocaleDateString():""}</div></div>`).join("")}catch(e){status.textContent="I couldn't reach the online trend feed right now. Your closet still works offline.";list.innerHTML='<div class="empty">Trend Radar is temporarily offline. Try again later. 💕</div>';return[]}}
 function saveOutfit(){let chosen=Object.values(current).filter(Boolean);if(chosen.length<2)return alert("Pick at least two pieces before saving!");saved.unshift({id:Date.now(),items:chosen});persist();alert("Outfit saved! 💗");showPage("saved")}
 function renderSaved(){releasePhotoUrls();let b=document.getElementById("savedList");if(!saved.length){b.innerHTML='<div class="empty">You haven’t saved any outfits yet. ✨</div>';return}b.innerHTML=saved.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>{let photo=photoUrl(x);return photo?`<img src="${photo}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`}).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><button onclick="deleteSaved(${o.id})">Delete</button></div>`}).join("")}
 function deleteSaved(id){saved=saved.filter(x=>x.id!==id);persist();renderSaved()}
-window.addEventListener?.("pagehide",releasePhotoUrls);
-const appReady=initializeCloset().catch(error=>{alert("I couldn't open this closet's browser storage. Try reloading the page.");throw error});
-</script>
-</body>
-</html>
+window.addEventListener?.("pagehide",releasePhotoUrls);const appReady=initializeCloset().catch(error=>{alert("I couldn't open this closet's browser storage. Try reloading the page.");throw error});
+</script></body></html>
