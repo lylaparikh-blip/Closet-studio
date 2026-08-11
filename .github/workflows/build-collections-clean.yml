@@ -1,0 +1,73 @@
+name: Build clean outfit collections
+
+on:
+  push:
+    branches:
+      - feature/outfit-collections-clean
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add collections without changing existing builder logic
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          changes = 0
+
+          old = '.saved-look img,.saved-look .emoji{width:90px;height:90px;object-fit:cover;border-radius:12px}.saved-look .emoji{background:#f8e7ef;display:flex;align-items:center;justify-content:center;font-size:38px}\n.trend'
+          new = '.saved-look img,.saved-look .emoji{width:90px;height:90px;object-fit:cover;border-radius:12px}.saved-look .emoji{background:#f8e7ef;display:flex;align-items:center;justify-content:center;font-size:38px}.collection{background:#fff;border:2px solid #efd6e3;border-radius:22px;padding:18px;margin:18px 0}.collection-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.collection-count{font-size:13px;color:#8b6b80}.collection-empty{padding:16px;border-radius:14px;background:#fff8fc;color:#7c6174}\n.trend'
+          if old not in s: raise SystemExit('CSS anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          old = '<section id="saved" class="page"><h1>💗 Saved Outfits</h1><div id="savedList"></div></section>'
+          new = '<section id="saved" class="page"><h1>💗 Saved Outfits</h1><div class="card"><h2>🗂️ My Collections</h2><p class="hint">Create groups and give each one any name you want.</p><div class="row"><input id="collectionName" placeholder="Collection name" style="flex:1;min-width:220px"><button class="primary" onclick="createCollection()">＋ Create collection</button></div></div><div id="collectionList"></div><h2 style="margin-top:28px">✨ All Saved Outfits</h2><div id="savedList"></div></section>'
+          if old not in s: raise SystemExit('Saved section anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          old = 'let items=[];let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),current={accessories:[]},trendData=[],isAddingItem=false;'
+          new = 'let items=[];let saved=JSON.parse(localStorage.getItem("savedOutfits")||"[]"),collections=JSON.parse(localStorage.getItem("outfitCollections")||"[]"),current={accessories:[]},trendData=[],isAddingItem=false;'
+          if old not in s: raise SystemExit('State anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          old = 'function persist(){try{localStorage.setItem("savedOutfits",JSON.stringify(saved));return true}catch(e){return false}}'
+          new = 'function persist(){try{localStorage.setItem("savedOutfits",JSON.stringify(saved));localStorage.setItem("outfitCollections",JSON.stringify(collections));return true}catch(e){return false}}'
+          if old not in s: raise SystemExit('Persist anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          old = 'function saveOutfit(){let chosen=selectedIds();if(chosen.length<2)return alert("Pick at least two pieces before saving!");saved.unshift({id:Date.now(),items:chosen});persist();alert("Outfit saved! 💗");showPage("saved")}\nfunction renderSaved(){'
+          new = 'function saveOutfit(){let chosen=selectedIds();if(chosen.length<2)return alert("Pick at least two pieces before saving!");saved.unshift({id:Date.now(),items:chosen,collectionId:null});persist();alert("Outfit saved! 💗");showPage("saved")}\nfunction createCollection(){let input=document.getElementById("collectionName"),name=input.value.trim();if(!name)return alert("Give your collection a name first!");collections.push({id:Date.now(),name});input.value="";persist();renderCollections();renderSaved()}\nfunction deleteCollection(id){if(!confirm("Delete this collection? The outfits will stay saved."))return;collections=collections.filter(c=>c.id!==id);saved=saved.map(o=>o.collectionId===id?{...o,collectionId:null}:o);persist();renderCollections();renderSaved()}\nfunction assignToCollection(outfitId,value){let outfit=saved.find(o=>o.id===outfitId);if(!outfit)return;outfit.collectionId=value?Number(value):null;persist();renderCollections();renderSaved()}\nfunction renderCollections(){let box=document.getElementById("collectionList");if(!box)return;if(!collections.length){box.innerHTML="";return}box.innerHTML=collections.map(c=>{let count=saved.filter(o=>o.collectionId===c.id).length;return `<div class="collection"><div class="collection-head"><div><h2>🗂️ ${esc(c.name)}</h2><div class="collection-count">${count} saved outfit${count===1?"":"s"}</div></div><button class="secondary" onclick="deleteCollection(${c.id})">Delete collection</button></div><div id="collection-${c.id}"></div></div>`}).join("");collections.forEach(c=>{let box=document.getElementById("collection-"+c.id),outfits=saved.filter(o=>o.collectionId===c.id);box.innerHTML=outfits.length?outfits.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>{let photo=photoUrl(x);return photo?`<img src="${photo}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`}).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><select onchange="assignToCollection(${o.id},this.value)"><option value="">Remove from collection</option>${collections.map(x=>`<option value="${x.id}" ${x.id===o.collectionId?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`}).join(""):"<div class=\"collection-empty\">No outfits in this collection yet. Assign one below! ✨</div>"})}\nfunction renderSaved(){'
+          if old not in s: raise SystemExit('Save/render anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          old = 'b.innerHTML=saved.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>{let photo=photoUrl(x);return photo?`<img src="${photo}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`}).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><button onclick="deleteSaved(${o.id})">Delete</button></div>`}).join("")}\nfunction deleteSaved'
+          new = 'b.innerHTML=saved.map(o=>{let a=o.items.map(id=>items.find(x=>x.id===id)).filter(Boolean);return `<div class="saved"><h3>✨ Outfit</h3><div class="saved-look">${a.map(x=>{let photo=photoUrl(x);return photo?`<img src="${photo}" title="${esc(x.name)}">`:`<div class="emoji" title="${esc(x.name)}">${x.emoji||"👗"}</div>`}).join("")}</div><p>${a.map(x=>esc(x.name)).join(" · ")}</p><select onchange="assignToCollection(${o.id},this.value)"><option value="">${o.collectionId?"Move to another collection":"Choose a collection"}</option>${collections.map(c=>`<option value="${c.id}" ${c.id===o.collectionId?"selected":""}>${esc(c.name)}</option>`).join("")}</select><button onclick="deleteSaved(${o.id})">Delete</button></div>`}).join("");renderCollections()}\nfunction deleteSaved'
+          if old not in s: raise SystemExit('Saved rendering anchor not found; no changes made.')
+          s = s.replace(old, new, 1); changes += 1
+
+          p.write_text(s)
+          print(f'Applied {changes} guarded changes.')
+          PY
+      - name: Validate JavaScript syntax
+        run: |
+          node --check <(python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text()
+          print(re.search(r'<script>(.*?)</script>',s,re.S).group(1))
+          PY
+          )
+      - name: Remove builder workflow and commit
+        run: |
+          rm .github/workflows/build-collections-clean.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html .github/workflows/build-collections-clean.yml
+          git commit -m 'Add clean named outfit collections'
+          git push
